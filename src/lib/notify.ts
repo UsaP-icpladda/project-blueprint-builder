@@ -1,12 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type NotifyKind =
-  | "created"
-  | "assigned"
-  | "pending_qc"
-  | "rejected"
-  | "closed"
-  | "cancelled";
+  "created" | "assigned" | "pending_qc" | "rejected" | "closed" | "cancelled";
 
 type Ctx = {
   jobNo: string;
@@ -53,7 +48,11 @@ export function buildMessage(kind: NotifyKind, ctx: Ctx) {
 }
 
 /** ส่งการแจ้งเตือนในระบบให้ผู้ใช้หลายคน (ตัดค่าซ้ำและค่าว่างออก) */
-export async function notifyUsers(userIds: (string | null | undefined)[], kind: NotifyKind, ctx: Ctx) {
+export async function notifyUsers(
+  userIds: (string | null | undefined)[],
+  kind: NotifyKind,
+  ctx: Ctx,
+) {
   const ids = Array.from(new Set(userIds.filter(Boolean) as string[]));
   if (ids.length === 0) return;
   const { title, message } = buildMessage(kind, ctx);
@@ -68,7 +67,7 @@ export async function userIdsWithRoles(roles: string[]) {
     .from("user_roles")
     .select("user_id, role")
     .in("role", roles as never[]);
-  return (data ?? []).map((r) => r.user_id as string);
+  return (data ?? []).map((r) => r["user_id"] as string);
 }
 
 export async function logHistory(params: {

@@ -47,6 +47,27 @@ const CHART_COLORS = [
   "var(--color-chart-5)",
 ];
 
+const DEFECT_COLORS = [
+  "#00C2FF",
+  "#FFD23F",
+  "#FF4D8D",
+  "#7C3AED",
+  "#00D084",
+  "#FF7A00",
+  "#FF3B30",
+  "#14B8A6",
+];
+
+const LINE_COLORS = ["#00C2FF", "#FFD23F", "#FF4D8D", "#7C3AED", "#00D084", "#FF7A00"];
+
+function defectColor(index: number) {
+  return DEFECT_COLORS[index % DEFECT_COLORS.length];
+}
+
+function lineColor(index: number) {
+  return LINE_COLORS[index % LINE_COLORS.length];
+}
+
 function Dashboard() {
   const { data: jobs = [], isLoading } = useQuery({ queryKey: ["jobs"], queryFn: fetchJobs });
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
@@ -66,7 +87,14 @@ function Dashboard() {
   const avgLead = leadTimes.length ? leadTimes.reduce((a, b) => a + b, 0) / leadTimes.length : 0;
 
   const byStatus = (Object.keys(STATUS_SHORT) as JobStatus[])
-    .map((s) => ({ name: STATUS_SHORT[s], value: jobs.filter((j) => j.status === s).length }))
+    .map((s) => {
+      const value = jobs.filter((j) => j.status === s).length;
+      return {
+        name: STATUS_SHORT[s],
+        value,
+        percent: jobs.length ? (value / jobs.length) * 100 : 0,
+      };
+    })
     .filter((x) => x.value > 0);
 
   const defectCount = new Map<string, number>();
@@ -103,9 +131,25 @@ function Dashboard() {
       ) : (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard icon={ClipboardList} label="งานที่ยังไม่ปิด" value={open.length} hint={`ทั้งหมด ${jobs.length} งาน`} />
-            <StatCard icon={Clock} label="รอ QC/QA ตรวจสอบ" value={pendingQc.length} hint="Pending QC" />
-            <StatCard icon={AlertTriangle} label="เกินกำหนด (Overdue)" value={overdue.length} hint="เลย Due date" tone="danger" />
+            <StatCard
+              icon={ClipboardList}
+              label="งานที่ยังไม่ปิด"
+              value={open.length}
+              hint={`ทั้งหมด ${jobs.length} งาน`}
+            />
+            <StatCard
+              icon={Clock}
+              label="รอ QC/QA ตรวจสอบ"
+              value={pendingQc.length}
+              hint="Pending QC"
+            />
+            <StatCard
+              icon={AlertTriangle}
+              label="เกินกำหนด (Overdue)"
+              value={overdue.length}
+              hint="เลย Due date"
+              tone="danger"
+            />
             <StatCard
               icon={CheckCircle2}
               label="Pass Rate"
@@ -126,12 +170,23 @@ function Dashboard() {
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={byStatus} dataKey="value" nameKey="name" innerRadius={55} outerRadius={95} paddingAngle={2}>
+                      <Pie
+                        data={byStatus}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={55}
+                        outerRadius={95}
+                        paddingAngle={2}
+                        labelLine={false}
+                        label={({ name, percent }: { name?: string; percent?: number }) =>
+                          `${name ?? ""} ${((percent ?? 0) * 100).toFixed(0)}%`
+                        }
+                      >
                         {byStatus.map((_, i) => (
                           <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip formatter={(value, name) => [`${value} งาน`, `${name}`]} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
@@ -152,7 +207,11 @@ function Dashboard() {
                       <XAxis type="number" allowDecimals={false} fontSize={12} />
                       <YAxis type="category" dataKey="name" width={120} fontSize={12} />
                       <Tooltip />
-                      <Bar dataKey="count" fill="var(--color-chart-1)" radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="count" radius={[0, 14, 14, 0]} className="drop-shadow-md">
+                        {topDefects.map((defect, i) => (
+                          <Cell key={defect.name} fill={defectColor(i)} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -174,7 +233,11 @@ function Dashboard() {
                     <XAxis dataKey="name" fontSize={12} />
                     <YAxis allowDecimals={false} fontSize={12} />
                     <Tooltip />
-                    <Bar dataKey="count" fill="var(--color-chart-2)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" radius={[14, 14, 0, 0]} className="drop-shadow-md">
+                      {byLine.map((line, i) => (
+                        <Cell key={line.name} fill={lineColor(i)} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -187,7 +250,9 @@ function Dashboard() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y">
-                {recent.length === 0 && <p className="p-6 text-sm text-muted-foreground">ยังไม่มีงาน Rework</p>}
+                {recent.length === 0 && (
+                  <p className="p-6 text-sm text-muted-foreground">ยังไม่มีงาน Rework</p>
+                )}
                 {recent.map((j) => (
                   <Link
                     key={j.id}
@@ -199,8 +264,12 @@ function Dashboard() {
                     <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
                       {j.product_code} · {j.problem_detail}
                     </span>
-                    <span className="text-xs text-muted-foreground">{nameOf(profiles, j.created_by)}</span>
-                    <span className="text-xs text-muted-foreground">{formatDateTime(j.reported_at)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {nameOf(profiles, j.created_by)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDateTime(j.reported_at)}
+                    </span>
                     <Badge variant="outline" className={STATUS_CLASS[j.status]}>
                       {STATUS_SHORT[j.status]}
                     </Badge>
@@ -216,7 +285,11 @@ function Dashboard() {
 }
 
 function Empty() {
-  return <p className="flex h-full items-center justify-center text-sm text-muted-foreground">ยังไม่มีข้อมูล</p>;
+  return (
+    <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
+      ยังไม่มีข้อมูล
+    </p>
+  );
 }
 
 function StatCard({
