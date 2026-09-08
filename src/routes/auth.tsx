@@ -13,7 +13,10 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "เข้าสู่ระบบ — Rework System" },
-      { name: "description", content: "เข้าสู่ระบบเพื่อแจ้งงาน Rework ติดตามสถานะ และดูรายงานฝ่ายผลิต" },
+      {
+        name: "description",
+        content: "เข้าสู่ระบบเพื่อแจ้งงาน Rework ติดตามสถานะ และดูรายงานฝ่ายผลิต",
+      },
       { property: "og:title", content: "เข้าสู่ระบบ — Rework System" },
       { property: "og:description", content: "เข้าสู่ระบบแจ้งงาน Rework ของฝ่ายผลิต" },
       { name: "robots", content: "noindex" },
@@ -65,17 +68,19 @@ function AuthPage() {
       return;
     }
     if (!data.session) {
-      toast.success("สมัครสำเร็จ", { description: "กรุณาตรวจอีเมลเพื่อยืนยันบัญชีก่อนเข้าสู่ระบบ" });
+      toast.success("สมัครสำเร็จ", {
+        description: "กรุณาตรวจอีเมลเพื่อยืนยันบัญชีก่อนเข้าสู่ระบบ",
+      });
       return;
     }
     navigate({ to: "/dashboard", replace: true });
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="hidden flex-col justify-between bg-sidebar p-10 text-sidebar-foreground lg:flex">
+    <div className="grid min-h-screen bg-[#e8f8e8] lg:grid-cols-2">
+      <div className="hidden flex-col justify-between bg-[#d8f3dc] p-10 text-foreground lg:flex">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded bg-sidebar-primary text-sidebar-primary-foreground">
+          <div className="flex size-10 items-center justify-center rounded bg-primary text-primary-foreground shadow-[var(--shadow-accent-glow)]">
             <Factory className="size-5" />
           </div>
           <span className="page-title text-xl">Rework System</span>
@@ -83,19 +88,17 @@ function AuthPage() {
         <div>
           <div className="hatched h-1.5 w-24 rounded-full opacity-80" />
           <h2 className="page-title mt-5 text-4xl">ระบบแจ้งและรายงานงาน Rework</h2>
-          <p className="mt-3 max-w-md text-sidebar-foreground/70">
+          <p className="mt-3 max-w-md text-foreground/70">
             แจ้งงาน ติดตามสถานะ บันทึกผลการแก้ไข และตรวจสอบโดย QC/QA ครบในระบบเดียว
           </p>
         </div>
-        <p className="text-xs text-sidebar-foreground/50">Production Quality Control Platform</p>
+        <p className="text-xs text-foreground/50">Production Quality Control Platform</p>
       </div>
 
       <div className="flex items-center justify-center p-6">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm rounded-3xl border-2 border-primary/20 bg-[#FFF8E7] p-6 shadow-[var(--shadow-card)]">
           <h1 className="page-title text-3xl">เข้าใช้งานระบบ</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            ใช้อีเมลบริษัทของคุณในการเข้าสู่ระบบ
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">ใช้อีเมลบริษัทของคุณในการเข้าสู่ระบบ</p>
 
           <Tabs defaultValue="signin" className="mt-6">
             <TabsList className="grid w-full grid-cols-2">
@@ -107,7 +110,13 @@ function AuthPage() {
               <form onSubmit={signIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">อีเมล</Label>
-                  <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">รหัสผ่าน</Label>
@@ -129,15 +138,31 @@ function AuthPage() {
               <form onSubmit={signUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">ชื่อ-นามสกุล</Label>
-                  <Input id="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                  <Input
+                    id="name"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dept">แผนก</Label>
-                  <Input id="dept" value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="เช่น ฝ่ายผลิต" />
+                  <Input
+                    id="dept"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    placeholder="เช่น ฝ่ายผลิต"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email2">อีเมล</Label>
-                  <Input id="email2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input
+                    id="email2"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password2">รหัสผ่าน</Label>
@@ -154,8 +179,8 @@ function AuthPage() {
                   {busy ? "กำลังสมัคร..." : "สมัครใช้งาน"}
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  ผู้ใช้ใหม่จะได้สิทธิ์ Operator โดยอัตโนมัติ (ผู้ใช้คนแรกของระบบเป็น Admin) —
-                  Admin สามารถปรับสิทธิ์ได้ที่หน้าตั้งค่าระบบ
+                  ผู้ใช้ใหม่จะได้สิทธิ์ Operator โดยอัตโนมัติ (ผู้ใช้คนแรกของระบบเป็น Admin) — Admin
+                  สามารถปรับสิทธิ์ได้ที่หน้าตั้งค่าระบบ
                 </p>
               </form>
             </TabsContent>
